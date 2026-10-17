@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Birthday Gift – Demo</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#24172F;--card:#321447;--ink:#FFF9F0;--gold:#D4AF37;--soft:#F7DCE5;--on:#24172F}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+:root[data-t="black"]{--bg:#0b0b0b;--card:#1a1a1a;--ink:#f5efe0;--gold:#D4AF37;--soft:#cfc6ad;--on:#0b0b0b}
+:root[data-t="rose"]{--bg:#F7DCE5;--card:#fff;--ink:#4a2a35;--gold:#B76E79;--soft:#7a4a55;--on:#fff}
+:root[data-t="emerald"]{--bg:#0d3b2e;--card:#14543f;--ink:#fff9f0;--gold:#D4AF37;--soft:#cfe9dc;--on:#0d3b2e}
+:root[data-t="blue"]{--bg:#12285c;--card:#1b3a80;--ink:#f4f7ff;--gold:#c0c8d8;--soft:#c9d4f0;--on:#12285c}
+:root[data-t="white"]{--bg:#FFF9F0;--card:#fff;--ink:#2b2b2b;--gold:#B8962E;--soft:#6b6b6b;--on:#fff}
+:root[data-t="fun"]{--bg:#fff4d6;--card:#fff;--ink:#2d1b4e;--gold:#e8453c;--soft:#5b3f8c;--on:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,'Times New Roman',serif;min-height:100vh}
+main{max-width:640px;margin:0 auto;padding:18px 16px 40px}
+h1,h2{margin:.3em 0;color:var(--gold);text-align:center;line-height:1.15}
+h1{font-size:2rem}p.c{text-align:center;opacity:.9}
+.box{background:var(--card);border:2px solid var(--gold);border-radius:14px;padding:16px;margin:14px 0}
+button,select,input{font:inherit}
+button{background:var(--gold);color:var(--on);border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer;margin:4px 0}
+button.o{background:transparent;color:var(--gold);border:2px solid var(--gold)}
+button.w{width:100%}button:disabled{opacity:.35;cursor:default}
+input,select{width:100%;padding:11px;border-radius:10px;border:2px solid var(--gold);background:var(--bg);color:var(--ink);margin:4px 0 10px}
+label{font-size:.85rem;color:var(--soft)}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.cat{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mc{aspect-ratio:3/4;border:2px solid var(--gold);border-radius:10px;background:var(--card);color:var(--gold);font-size:1.4rem;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform .3s}
+.mc:hover:not(:disabled){transform:rotateY(12deg) scale(1.05)}.mc:disabled{opacity:.2}
+.turn{font-size:1.6rem;text-align:center;color:var(--gold);font-weight:700;animation:p 1.2s infinite alternate}
+@keyframes p{to{transform:scale(1.05)}}
+.q{font-size:1.35rem;text-align:center;padding:18px 6px}
+.t{font-size:2.4rem;text-align:center;color:var(--gold);font-weight:700}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.yes{background:#1f9d55;color:#fff}.no{background:#c0392b;color:#fff}
+table{width:100%;border-collapse:collapse}td,th{padding:7px 4px;text-align:left;border-bottom:1px solid var(--gold)}
+td:not(:first-child),th:not(:first-child){text-align:center}
+.sm{font-size:.8rem;opacity:.8}
+#cf{position:fixed;inset:0;pointer-events:none;z-index:9}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:.85rem}
+</style></head><body>
+<canvas id="cf"></canvas><main id="app"></main>
+<script>
+const THEMES=[["purple","Royal Purple & Gold"],["black","Black & Gold Luxury"],["rose","Rose Gold & Blush"],["emerald","Emerald & Gold"],["blue","Royal Blue & Silver"],["white","Minimalist White & Gold"],["fun","Colourful Celebration"]];
+const CATS=[
+["All About {n}",["favourite food","favourite colour","dream holiday destination","biggest pet peeve","one thing {n} cannot live without","favourite way to spend free time","favourite drink","most-used expression","what instantly makes {n} happy","what {n} would spend ₦10 million on first"].map(x=>"What is {n}’s "+x+"?").map(s=>s.replace("’s one thing {n} cannot live without","’s one thing they cannot live without").replace("’s what","’s answer: what"))],
+["Faith & Spiritual Life (optional)",["Which place of worship does {n} attend?","Who is {n}’s spiritual mentor?","What is {n}’s favourite scripture or quote?","Who is {n}’s favourite worship artist?","What is {n}’s favourite worship song?","Which figure of faith does {n} admire most?","Which sacred text or book does {n} enjoy most?","What verse encourages {n} in hard times?","What spiritual lesson shaped {n}’s life?","What is {n} most grateful to God for this year?"]],
+["Childhood & Growing Up",["Where was {n} born?","Where did {n} grow up?","What was {n}’s childhood nickname?","Which primary school did {n} attend?","What was {n}’s favourite school subject?","What did {n} dream of becoming as a child?","What was {n}’s favourite childhood food?","What was {n}’s funniest childhood habit?","Name one of {n}’s childhood best friends.","Which childhood memory does {n} cherish most?"]],
+["Funny Secrets",["What makes {n} laugh uncontrollably?","What is the funniest thing {n} has ever done?","What is {n} most likely to complain about?","Is {n} usually early or late?","What is {n}’s funniest habit?","What food would {n} refuse to eat?","What situation makes {n} dramatic?","Share one embarrassing moment {n} is happy to tell.","How does {n} react when angry?","What do friends tease {n} about most?"]],
+["Friends & Family",["What does {n} value most in friendship?","What can {n} not tolerate in a relationship?","How does {n} show affection?","What gift would make {n} happiest?","Which guest has known {n} the longest?","How does {n} support an upset friend?","Does {n} prefer calls or texts?","What trait does {n} admire in people?","What quality makes {n} a good friend?","What does {n} enjoy doing with family?"]],
+["Dreams & Achievements",["What did {n} study at university?","What is {n} most proud of?","What is {n}’s dream career or business?","What skill would {n} love to learn?","Name a major milestone {n} has reached.","What is {n}’s greatest personal accomplishment?","Which country would {n} like to visit or live in?","What motivates {n} to work hard?","What goal does {n} have for five years’ time?","What advice would {n} give their younger self?"]],
+["Birthday, Purpose & Future",["What is {n} most grateful for this year?","What is the greatest lesson {n} has learned?","What is {n}’s biggest dream for the next chapter?","Which word best describes {n} now?","What is on {n}’s birthday wish list?","What does {n} hope to do before the next birthday?","What does a successful life mean to {n}?","Which habit would {n} like to improve?","What legacy would {n} like to leave?","What is {n}’s biggest birthday wish?"]]];
+CATS[0][1]=["favourite food","favourite colour","dream holiday destination","biggest pet peeve","one thing they cannot live without","favourite way to spend free time","favourite drink","most-used expression","thing that instantly makes them happy","first purchase with ₦10 million"].map(x=>x.startsWith("first")?"What would {n} buy first with ₦10 million?":x.startsWith("one")||x.startsWith("thing")?"What is "+({"one thing they cannot live without":"one thing {n} cannot live without","thing that instantly makes them happy":"the thing that instantly makes {n} happy"})[x]+"?":"What is {n}’s "+x+"?");
+const PEN=[
+{t:"Offer {n} {amt} as a voluntary birthday gift.",money:1},
+{t:"Give {n} a birthday gift of your choice.",money:1},
+{t:"Sing {n} a song for 30 seconds."},{t:"Dance for {n} for 30 seconds."},
+{t:"Say five beautiful things about {n}."},{t:"Recite a meaningful quote or blessing for {n}."},
+{t:"Say a heartfelt birthday prayer or well-wish for {n}."},{t:"Share a beautiful memory about {n}."},
+{t:"Give {n} 31 seconds of compliments."},{t:"Lead everyone in singing Happy Birthday."},
+{t:"Share three reasons why {n} is special."},{t:"Tell a funny story involving {n}."}];
+const FREE=PEN.filter(p=>!p.money);
+const S={scr:"setup",name:"Sarah",age:30,theme:"purple",cur:"₦",amt:5000,timer:31,guests:"Ada, Tobi, Chioma, Emeka, Ngozi",mode:"auto"};
+let G=null,tm=null,hist=null;
+const $=s=>document.querySelector(s),app=$("#app");
+const f=s=>s.replaceAll("{n}",S.name).replaceAll("{amt}",S.cur+Number(S.amt).toLocaleString());
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function setTheme(t){document.documentElement.dataset.t=t==="purple"?"":t}
+function start(){
+ S.name=$("#nm").value.trim()||"Sarah";S.age=$("#ag").value||30;S.cur=$("#cu").value;S.amt=+$("#am").value||0;S.timer=+$("#tmr").value;S.mode=$("#md").value;
+ S.guests=$("#gs").value;const ps=S.guests.split(",").map(x=>x.trim()).filter(Boolean);
+ if(ps.length<1){alert("Add at least one guest name.");return}
+ G={p:ps.map(n=>({n,pts:0,ok:0,bad:0,ch:0,cat:{}})),used:{},turn:0,last:null,order:ps.map((_,i)=>i)};
+ hist=null;S.scr="board";render()}
+function cur(){return G.p[G.turn]}
+function total(){return Object.values(G.used).reduce((a,b)=>a+b.length,0)}
+function render(){clearInterval(tm);setTheme(S.theme);({setup:setup,board:board,cards:cards,q:qview,ok:pview,pen:pview,done:pview,final:final}[S.scr])()}
+function setup(){
+ app.innerHTML=`<h1>🎁 THE BIRTHDAY GIFT</h1><p class="c">Every Life Is a Gift. Every Birthday Deserves a Celebration.</p>
+ <div class="box"><h2>How Well Do You Really Know the Celebrant?</h2>
+ <p class="c sm">Demo mode: one device, you are the celebrant and guests. No accounts, codes or real-time sync.</p>
+ <label>Celebrant name</label><input id="nm" value="${esc(S.name)}">
+ <div class="row"><div><label>Age</label><input id="ag" type="number" value="${S.age}"></div><div><label>Answer timer (s, 0 = off)</label><input id="tmr" type="number" min="0" max="120" value="${S.timer}"></div></div>
+ <label>Theme</label><select id="th" onchange="S.theme=this.value;setTheme(this.value)">${THEMES.map(t=>`<option value="${t[0]}" ${t[0]===S.theme?"selected":""}>${t[1]}</option>`).join("")}</select>
+ <label>Guests (comma separated)</label><input id="gs" value="${esc(S.guests)}">
+ <label>Turn mode</label><select id="md"><option value="auto" ${S.mode=="auto"?"selected":""}>Automatic rotation</option><option value="pick" ${S.mode=="pick"?"selected":""}>Celebrant selects</option></select>
+ <div class="row"><div><label>Currency</label><input id="cu" value="${esc(S.cur)}"></div><div><label>Optional gift amount</label><input id="am" type="number" value="${S.amt}"></div></div>
+ <button class="w" onclick="start()">ENTER THE CELEBRATION</button></div>`}
+function board(){
+ const who=S.mode==="pick"?`<label>Celebrant picks next guest</label><select onchange="G.turn=+this.value;render()">${G.p.map((p,i)=>`<option value="${i}" ${i==G.turn?"selected":""}>${esc(p.n)}</option>`).join("")}</select>`:"";
+ app.innerHTML=`<div class="top"><span>${esc(S.name)}’s ${S.age} Wonderful Years</span><button class="o" onclick="finish()">End & celebrate</button></div>
+ <div class="turn">IT’S YOUR TURN!<br>${esc(cur().n)}</div>${who}
+ <h2>Pick a Category</h2><div class="cat">${CATS.map((c,i)=>{const left=10-(G.used[i]||[]).length;return `<button class="${left?"":"o"}" ${left?"":"disabled"} onclick="G.c=${i};S.scr='cards';render()">${esc(f(c[0]))}<br><span class="sm">${left} cards left</span></button>`}).join("")}</div>
+ ${lb()}<button class="o w" onclick="if(confirm('Reset all cards and scores?'))start()">Reset game</button>`}
+function lb(){const r=[...G.p].sort((a,b)=>b.pts-a.pts);
+ return `<div class="box"><h2>Live Leaderboard</h2><table><tr><th>Guest</th><th>Pts</th><th>✔</th><th>✘</th><th>Chall.</th></tr>${r.map(p=>`<tr><td>${esc(p.n)}</td><td>${p.pts}</td><td>${p.ok}</td><td>${p.bad}</td><td>${p.ch}</td></tr>`).join("")}</table></div>`}
+function cards(){
+ const u=G.used[G.c]||[];
+ app.innerHTML=`<div class="top"><button class="o" onclick="S.scr='board';render()">← Categories</button><span>${esc(cur().n)}</span></div><h2>${esc(f(CATS[G.c][0]))}</h2><p class="c">Pick a card. Reveal a mystery.</p>
+ <div class="grid">${Array.from({length:10},(_,i)=>`<button class="mc" ${u.includes(i)?"disabled":""} onclick="pick(${i})">${i+1}</button>`).join("")}</div>`}
+function pick(i){(G.used[G.c]=G.used[G.c]||[]).push(i);G.q=i;G.left=S.timer;S.scr="q";render()}
+function qview(){
+ app.innerHTML=`<div class="top"><span>${esc(cur().n)} · ${esc(f(CATS[G.c][0]))} #${G.q+1}</span></div>
+ <div class="box"><div class="q">${esc(f(CATS[G.c][1][G.q]))}</div>${S.timer?`<div class="t" id="tt">${G.left}</div>`:""}<p class="c sm">Answer out loud. Only the celebrant presses YES or NO.</p></div>
+ <div class="box"><h2>Celebrant’s Judging Panel</h2><p class="c sm">Demo: you hold the answer in your head. In the full app it would show the saved answer key.</p>
+ <div class="row"><button class="yes" onclick="judge(1)">YES ✔</button><button class="no" onclick="judge(0)">NO ✘</button></div></div>`;
+ if(S.timer)tm=setInterval(()=>{G.left=Math.max(0,G.left-1);const e=$("#tt");if(e)e.textContent=G.left;if(!G.left)clearInterval(tm)},1000)}
+function snap(){return JSON.stringify({p:G.p,turn:G.turn,used:G.used})}
+function judge(ok){clearInterval(tm);G.last={snap:snap(),cat:G.c,q:G.q};const p=cur();
+ p.cat[G.c]=p.cat[G.c]||{ok:0,n:0};p.cat[G.c].n++;
+ if(ok){p.pts+=10;p.ok++;p.cat[G.c].ok++;boom();S.scr="ok"}else{p.bad++;G.pen=PEN[Math.random()*PEN.length|0];S.scr="pen"}
+ render()}
+function pview(){
+ if(S.scr==="done"){app.innerHTML=`<h1>✅ Challenge settled</h1><p class="c">Thanks for celebrating ${esc(S.name)}, ${esc(cur().n)}!</p>${nextBtns()}${lb()}`;return}
+ if(S.scr==="ok"){app.innerHTML=`<h1>🎉 CORRECT!</h1><p class="c">+10 points for ${esc(cur().n)}. ${esc(S.name)} is impressed!</p>${nextBtns()}${lb()}`;return}
+ const m=G.pen.money;
+ app.innerHTML=`<h1>😂 Oops!</h1><p class="c"><b>IF YOU DON’T KNOW ${esc(S.name.toUpperCase())}, YOU MUST CELEBRATE THEM!</b></p>
+ <div class="box"><div class="q">${esc(f(G.pen.t))}</div>${m?`<p class="c sm">Giving is always voluntary. A free alternative is one tap away.</p><button class="o w" onclick="freeAlt()">Choose a free alternative</button>`:""}</div>
+ <div class="row"><button onclick="doneCh(5)">Completed (+5)</button><button class="o" onclick="G.pen=PEN[Math.random()*PEN.length|0];render()">Reroll</button></div>
+ <button class="o w" onclick="doneCh(0,1)">Waive penalty</button>`}
+function freeAlt(){G.pen=FREE[Math.random()*FREE.length|0];render()}
+function doneCh(b,w){if(b){cur().pts+=b;cur().ch++;boom()}S.scr="done";render()}
+function nextBtns(){return total()>=70?`<button class="w" onclick="finish()">All cards played – celebrate!</button>`:`<button class="w" onclick="nextTurn()">Next guest →</button><button class="o w" onclick="undo()">Undo last judgment</button>`}
+function nextTurn(){if(S.mode==="auto")G.turn=(G.turn+1)%G.p.length;S.scr="board";render()}
+function undo(){const s=JSON.parse(G.last.snap);G.p=s.p;G.turn=s.turn;G.used=s.used;G.c=G.last.cat;(G.used[G.c]=G.used[G.c]||[]);G.used[G.c]=G.used[G.c].filter(x=>x!==G.last.q);G.last=null;S.scr="cards";render()}
+function finish(){S.scr="final";render()}
+function final(){
+ const r=[...G.p].sort((a,b)=>b.pts-a.pts),acc=[...G.p].filter(p=>p.ok+p.bad>=3).sort((a,b)=>b.ok/(b.ok+b.bad)-a.ok/(a.ok+a.bad))[0];
+ app.innerHTML=`<h1>HAPPY BIRTHDAY, ${esc(S.name.toUpperCase())}!</h1><h2>${esc(S.age)} YEARS OF BEAUTIFUL MEMORIES</h2>
+ <p class="c">Today, we celebrate the wonderful gift that you are. Thank you for the laughter, kindness, friendship and unforgettable moments. May this new chapter bring joy, fulfilled dreams and countless reasons to celebrate.</p>
+ <div class="box"><h2>🏆 Birthday Champions</h2><p class="c"><b>THE ULTIMATE BESTIE:</b> ${esc(r[0].n)} (${r[0].pts} pts)</p>${acc?`<p class="c"><b>THE CELEBRANT EXPERT:</b> ${esc(acc.n)} (${Math.round(100*acc.ok/(acc.ok+acc.bad))}% accuracy)</p>`:""}
+ <p class="c sm">🥈 ${r[1]?esc(r[1].n):"–"} · 🥉 ${r[2]?esc(r[2].n):"–"}</p></div>${lb()}
+ <button class="w" onclick="csv()">DOWNLOAD GAME RESULTS</button><button class="o w" onclick="S.scr='setup';render()">Start a new game</button>`;boom();boom()}
+function csv(){const t="Guest,Points,Correct,Incorrect,Challenges\n"+G.p.map(p=>[p.n,p.pts,p.ok,p.bad,p.ch].join(",")).join("\n");
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:"text/csv"}));a.download="birthday-results.csv";a.click()}
+const cv=$("#cf"),cx=cv.getContext("2d");let ps=[];
+function boom(){cv.width=innerWidth;cv.height=innerHeight;const c=["#D4AF37","#F7DCE5","#e8453c","#6a3fa0","#2ecc71"];
+ for(let i=0;i<120;i++)ps.push({x:innerWidth/2,y:innerHeight/3,vx:(Math.random()-.5)*14,vy:Math.random()*-12,c:c[i%5],l:90});if(ps.length===120)tick()}
+function tick(){cx.clearRect(0,0,cv.width,cv.height);ps=ps.filter(p=>p.l-->0);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.3;cx.fillStyle=p.c;cx.fillRect(p.x,p.y,7,5)});if(ps.length)requestAnimationFrame(tick)}
+setup();
+</script></body></html>
